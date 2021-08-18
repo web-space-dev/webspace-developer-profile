@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Displaying the artwork built using P5 from the Creative Computing Summer Camp"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
@@ -24,11 +24,105 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <script type="text/javascript">
+      (function (l) {
+        if (l.search) {
+          var q = {};
+          l.search
+            .slice(1)
+            .split("&")
+            .forEach(function (v) {
+              var a = v.split("=");
+              q[a[0]] = a.slice(1).join("=").replace(/~and~/g, "&");
+            });
+          if (q.p !== undefined) {
+            window.history.replaceState(
+              null,
+              null,
+              l.pathname.slice(0, -1) +
+                (q.p || "") +
+                (q.q ? "?" + q.q : "") +
+                l.hash
+            );
+          }
+        }
+      })(window.location);
+    </script>
+    <style type="text/css">
+      body {
+        margin: 0 !important;
+        background-color: #0b1315;
+      }
+      .container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #0b1315;
+        display: flex;
+      }
+      .card {
+        background-color: #ff5006;
+        box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2),
+          0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+          0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        width: 80%;
+        height: min-content;
+        margin: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      img {
+        -webkit-animation: fadein 1.3s; /* Safari, Chrome and Opera > 12.1 */
+        -moz-animation: fadein 1.3s; /* Firefox < 16 */
+        -ms-animation: fadein 1.3s; /* Internet Explorer */
+        -o-animation: fadein 1.3s; /* Opera < 12.1 */
+        animation: fadein 1.3s;
+      }
+
+      h1,
+      p {
+        color: #fff;
+        font-family: Roboto, sans-serif;
+        -webkit-animation: fadein 0.8s; /* Safari, Chrome and Opera > 12.1 */
+        -moz-animation: fadein 0.8s; /* Firefox < 16 */
+        -ms-animation: fadein 0.8s; /* Internet Explorer */
+        -o-animation: fadein 0.8s; /* Opera < 12.1 */
+        animation: fadein 0.8s;
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+    <title>Student Showcase | Creative Computing</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div class="container">
+        <div class="card">
+          <!-- <h1>Welcome</h1> -->
+
+          <img
+            src="%PUBLIC_URL%/logo.png"
+            alt="Creative Computing Logo"
+            width="150"
+          />
+          <p>Loading the application...</p>
+        </div>
+      </div>
+    </div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
