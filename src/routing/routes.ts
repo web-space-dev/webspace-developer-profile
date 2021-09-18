@@ -1,4 +1,5 @@
 import Login from "../pages/Login";
+import Tasks from "../pages/Tasks";
 
 /**
  * Route Types
@@ -23,6 +24,12 @@ const routes: IRouteType[] = [
     name: "Login",
     link: "/login",
     component: Login,
+    authed: false,
+  },
+  {
+    name: "Tasks",
+    link: "/tasks",
+    component: Tasks,
     authed: false,
   },
 ];

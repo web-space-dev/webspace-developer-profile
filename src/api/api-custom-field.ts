@@ -1,19 +1,24 @@
 import { config } from "../config/config";
 import { IItem } from "../types";
 
-const prefix = config.server_url + "/api/item";
+const base = "https://api.plutio.com/v1.8/";
+const prefix = base + "custom-fields?_id=";
 // https://api.plutio.com/v1.8/tasks?taskGroupId=ZkTfpcsywJ6Fem2kZ
+
 /**
  * Fetch a list of Items
  *
  */
-export const list = async () => {
+export const list = async (token: string, id: string) => {
   try {
-    const response = await fetch(prefix, {
+    const response = await fetch(`${prefix}${id}`, {
       method: "GET",
+      //@ts-ignore
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        Business: process.env.REACT_APP_PLUTIO_BUSINESS_DOMAIN,
       },
     });
     return response.json();

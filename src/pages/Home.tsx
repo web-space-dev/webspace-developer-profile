@@ -75,6 +75,7 @@ const Home = () => {
     <React.Fragment>
       <GridList>
         <Link to="/login">Login</Link>
+        <Link to="/tasks">Tasks</Link>
         {/* {items.length > 0 ? (
           items.map((item, i) => (
             <GridListTile
