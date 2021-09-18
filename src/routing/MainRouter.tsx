@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Route, Switch, useHistory } from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
@@ -7,7 +7,11 @@ import Header from "./../components/layout/Header";
 import EmptyState from "./../components/global/EmptyState";
 
 import routes, { IRouteType } from "./routes";
-// import auth from "./../helpers/auth-helper";
+
+// import auth from "./helpers/auth-helper";
+import auth from "../helpers/auth-helper";
+import { generateAccessToken } from "../api/api-auth";
+
 import Loading from "../components/global/Loading";
 
 /**
@@ -16,33 +20,44 @@ import Loading from "../components/global/Loading";
  * @returns {JSX.Element}
  */
 const MainRouter = () => {
-  /**
-   * If set to true, displays routes that only authenticated users should see
-   * If not, displays login / register
-   */
-  const isAuthed = false;
+  const [hasAccessToken, setHasAccessToken] = React.useState(false);
+  const [isAuthed, setIsAuthed] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
   const history = useHistory();
-  /**
-   * Check if the user is authenticaed
-   */
-  // useEffect(() => {
-  //   const setAuth = (bool: boolean) => setIsAuthed(bool);
 
-  //   const jwt = auth.isAuthenticated();
-  //   setAuth(jwt ? true : false);
+  useEffect(() => {
+    if (!hasAccessToken) {
+      const tokenObj = auth.accessTokenExists();
+      if (tokenObj) {
+        setLoading(false);
+        setHasAccessToken(true);
+      } else {
+        generateAccessToken().then(
+          (res: {
+            status?: any;
+            message?: any;
+            accessToken?: any;
+            accessTokenExpiresAt?: any;
+          }) => {
+            console.log("yes", res);
+            if (res.status) {
+              setError(res.message || "Could not connect to server");
+              setLoading(false);
+              return;
+            }
+            const { accessToken, accessTokenExpiresAt } = res;
+            auth.setAccessToken({ accessToken, accessTokenExpiresAt }, () => {
+              setLoading(false);
+            });
+          }
+        );
+      }
+    }
+  }, [hasAccessToken]);
 
-  //   /**
-  //    * Listen for changes in the URL bar,
-  //    * and check if the user is authenticated
-  //    *
-  //    * Can only be done when the component
-  //    * is exported through withRouter
-  //    */
-  //   history.listen(() => {
-  //     const jwt = auth.isAuthenticated();
-  //     setAuth(jwt ? true : false);
-  //   });
-  // }, [history]);
+  if (loading) return <Loading />;
+  if (error !== "") return <EmptyState message={error} />;
 
   return (
     <React.Fragment>

@@ -23,10 +23,10 @@ let theme = createMuiTheme({
       main: "#410099",
     },
     background: {
-      default: "#0B1315",
-      paper: "#171F21",
+      // default: "#0B1315",
+      // paper: "#171F21",
     },
-    type: "dark",
+    // type: "dark",
   },
   typography: {
     fontFamily: ["quicksand", "sans-serif"].join(","),
