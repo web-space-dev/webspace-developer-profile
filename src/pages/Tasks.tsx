@@ -6,7 +6,6 @@ import {
   Grid,
   GridList,
   GridListTile,
-  Snackbar,
   Typography,
   Zoom,
 } from "@material-ui/core";
@@ -15,13 +14,17 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ICustomField, ITask } from "../types";
 import Loading from "../components/global/Loading";
 import EmptyState from "../components/global/EmptyState";
-import { Link } from "react-router-dom";
 import { list as listTasks } from "../api/api-task";
 import auth from "../helpers/auth-helper";
 import { Replay } from "@material-ui/icons";
 import { list as listCustomFields } from "../api/api-custom-field";
 
 const customFieldId = "xkvrwwsxaQYse8KbE";
+
+const devs = {
+  shane: "vkJ8wTK55L8pxP4jm",
+  dylan: "Mfp8xnAtLN4yGT5ru",
+};
 
 const taskGroupIds = {
   inReview: "bgtwBnGZeWatyyZuS",
@@ -54,13 +57,20 @@ const Tasks = () => {
   const load = useCallback(() => {
     const token = auth.accessTokenExists();
     if (token) {
-      listTasks(token.accessToken, taskGroupIds["inReview"])
+      listTasks(token.accessToken, taskGroupIds["done"])
         .then((res) => {
           setLoading(false);
           if (res.code) {
             setError(res.message || "Could not contact server");
           } else {
-            setTasks(res.filter((task: ITask) => task.customFields.length > 0));
+            setTasks(
+              res.filter((task: ITask) => {
+                return (
+                  task.customFields.length > 0 &&
+                  task.assignedTo[0] === devs["dylan"]
+                );
+              })
+            );
           }
         })
         .catch((err) => {

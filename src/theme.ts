@@ -12,24 +12,24 @@
  * Copyright 2021 WebSpace, WebSpace
  */
 
-import { createMuiTheme, responsiveFontSizes } from "@material-ui/core/styles";
+import { createTheme, responsiveFontSizes } from "@material-ui/core/styles";
 
-let theme = createMuiTheme({
+let theme = createTheme({
   palette: {
     primary: {
-      main: "#ff5006",
+      main: "#e01b84",
     },
     secondary: {
       main: "#410099",
     },
     background: {
-      // default: "#0B1315",
-      // paper: "#171F21",
+      default: "#EDF2F7",
+      paper: "#ffffff",
     },
     // type: "dark",
   },
   typography: {
-    fontFamily: ["quicksand", "sans-serif"].join(","),
+    fontFamily: ["jaldi", "sans-serif"].join(","),
 
     h1: {
       fontWeight: 800,
@@ -76,7 +76,7 @@ let theme = createMuiTheme({
     },
     MuiCard: {
       root: {
-        textAlign: "center",
+        textAlign: "left",
       },
     },
     MuiCardActions: {

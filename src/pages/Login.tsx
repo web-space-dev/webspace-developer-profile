@@ -3,7 +3,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   CircularProgress,
   createStyles,
   TextField,
@@ -11,13 +10,12 @@ import {
   Typography,
   withStyles,
 } from "@material-ui/core";
-import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { IHistoryProps } from "../types";
-import { create } from "../api/api-item";
-import { ArrowBack, Check, Error } from "@material-ui/icons";
+import { Check, Error } from "@material-ui/icons";
 import EmptyState from "../components/global/EmptyState";
 import auth from "../helpers/auth-helper";
+import { signin } from "../api/api-auth";
 
 /**
  * Injected styles
@@ -50,42 +48,39 @@ type IProps = {
  * @param {History} history - the browser history object
  * @param {Theme} classes - classes passed from Material UI Theme
  */
-const AddItem = ({ history, classes }: IProps) => {
+const Login = ({ history, classes }: IProps) => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  const [link, setLink] = useState("");
-  const [linkError, setLinkError] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const jwt = auth.isAuthenticated();
-// const jwt = false;
+  const jwt = auth.accessTokenExists();
+
   /**
    * Handle validation for form inputs
    */
   const handleValidation = () => {
     let passed = true;
 
-    // if (email.length < 3) {
-    //   setEmailError("Email must be at least 4 characters");
-    //   passed = false;
-    // } else setEmailError("");
+    if (email.length < 3) {
+      setEmailError("Email must be at least 3 characters");
+      passed = false;
+    } else if (!email.includes("@") || !email.includes(".")) {
+      setEmailError("Please enter a valid email");
+      passed = false;
+    } else setEmailError("");
 
-    // if (link.length < 5) {
-    //   setLinkError("Link must be at least 5 characters");
-    //   passed = false;
-    // } else setLinkError("");
-
-    // if (!link.includes("http")) {
-    //   setLinkError("Link must be a valid link");
-    //   passed = false;
-    // } else setLinkError("");
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      passed = false;
+    } else setPasswordError("");
 
     return passed;
   };
-
   /**
    * Check validation and then run the
    * item create network request
@@ -94,36 +89,45 @@ const AddItem = ({ history, classes }: IProps) => {
    */
   const submit = () => {
     if (handleValidation()) {
-      // setLoading(true);
+      setLoading(true);
 
-      // let username, portfolioLink;
+      signin(email, password).then((data) => {
+        if (!data || data.error) {
+          setLoading(false);
+          return setError(data && data.error ? data.error : "Could not login");
+        }
+        console.log(data);
 
-      // create({ email, username, link: portfolioLink }).then((data) => {
-      //   if (!data || data.error) {
-      //     setLoading(false);
-      //     return setError(
-      //       data && data.error ? data.error : "Could not create portfolio item"
-      //     );
-      //   }
-      //   localStorage.setItem("existing", "true");
-      //   history.push(`/`);
-      // });
+        const { accessToken, accessTokenExpiresAt, user } = data.data;
+        const { email, name, _id } = user;
+        auth.setAccessToken(
+          {
+            accessToken,
+            accessTokenExpiresAt,
+            email,
+            name,
+            _id,
+          },
+          (res) => {
+            if (res) {
+              history.push(`/person/` + _id);
+            }
+          }
+        );
+        // localStorage.setItem("existing", "true");
+        // history.push(`/`);
+      });
     }
   };
 
   /**
    * Render JSX
    */
-  if (jwt)
-    return <EmptyState message={"You have already logged in"} />;
+  if (jwt) return <EmptyState message={"You have already logged in"} />;
   return (
     <React.Fragment>
-      <Button component={Link} to="/" startIcon={<ArrowBack />}>
-        Back
-      </Button>
+      <Typography variant="h2">Login</Typography>
       <Card elevation={3} className={classes.wrapper}>
-        <CardHeader email="Create Portfolio Item" />
-
         <CardContent>
           <TextField
             name="email"
@@ -138,15 +142,14 @@ const AddItem = ({ history, classes }: IProps) => {
           />
 
           <TextField
-            name="link"
-            label="Link"
+            name="password"
+            label="Password"
             margin="normal"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            error={linkError !== ""}
-            helperText={linkError}
-            multiline
+            error={passwordError !== ""}
+            helperText={passwordError}
           />
         </CardContent>
         <br />
@@ -169,7 +172,7 @@ const AddItem = ({ history, classes }: IProps) => {
             disabled={loading}
             endIcon={loading ? <CircularProgress size={18} /> : <Check />}
           >
-            Create
+            Login
           </Button>
         </CardActions>
       </Card>
@@ -177,4 +180,4 @@ const AddItem = ({ history, classes }: IProps) => {
   );
 };
 
-export default withStyles(styles)(AddItem);
+export default withStyles(styles)(Login);

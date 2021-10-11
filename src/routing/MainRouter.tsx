@@ -8,11 +8,13 @@ import EmptyState from "./../components/global/EmptyState";
 
 import routes, { IRouteType } from "./routes";
 
-// import auth from "./helpers/auth-helper";
 import auth from "../helpers/auth-helper";
-import { generateAccessToken } from "../api/api-auth";
 
 import Loading from "../components/global/Loading";
+import Login from "../pages/Login";
+
+// import ReactGA from "react-ga";
+// import { config } from "../../config/config";
 
 /**
  * Handles Routing for the application
@@ -20,48 +22,45 @@ import Loading from "../components/global/Loading";
  * @returns {JSX.Element}
  */
 const MainRouter = () => {
-  const [hasAccessToken, setHasAccessToken] = React.useState(false);
+  // const [hasAccessToken, setHasAccessToken] = React.useState(false);
   const [isAuthed, setIsAuthed] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
+
   const history = useHistory();
 
-  useEffect(() => {
-    if (!hasAccessToken) {
-      const tokenObj = auth.accessTokenExists();
-      if (tokenObj) {
-        setLoading(false);
-        setHasAccessToken(true);
-      } else {
-        generateAccessToken().then(
-          (res: {
-            status?: any;
-            message?: any;
-            accessToken?: any;
-            accessTokenExpiresAt?: any;
-          }) => {
-            console.log("yes", res);
-            if (res.status) {
-              setError(res.message || "Could not connect to server");
-              setLoading(false);
-              return;
-            }
-            const { accessToken, accessTokenExpiresAt } = res;
-            auth.setAccessToken({ accessToken, accessTokenExpiresAt }, () => {
-              setLoading(false);
-            });
-          }
-        );
-      }
-    }
-  }, [hasAccessToken]);
+  /**
+   * Initialize Google Analytics
+   */
+  //  ReactGA.initialize(config.ga_id);
 
-  if (loading) return <Loading />;
-  if (error !== "") return <EmptyState message={error} />;
+  useEffect(() => {
+    if (!isAuthed) {
+      const setAuth = (bool: boolean) => setIsAuthed(bool);
+
+      const jwt = auth.accessTokenExists();
+      setAuth(jwt ? true : false);
+
+      /**
+       * Listen for changes in the URL bar,
+       * and check if the user is authenticated
+       *
+       * Can only be done when the component
+       * is exported through withRouter
+       */
+      history.listen(() => {
+        const jwt = auth.accessTokenExists();
+        setAuth(jwt ? true : false);
+
+        // ReactGA.pageview(window.location.pathname + window.location.search);
+      });
+
+      return;
+    }
+  }, [history, isAuthed]);
 
   return (
     <React.Fragment>
-      <Header />
+      <Header isAuthed={isAuthed} setIsAuthed={setIsAuthed} history={history} />
+
       <Grid
         container
         justify="center"
@@ -70,7 +69,7 @@ const MainRouter = () => {
         <Grid item xs={11}>
           <Suspense fallback={<Loading />}>
             <Switch>
-              <Route exact path="/" component={Home} />
+              <Route exact path="/" component={isAuthed ? Home : Login} />
 
               {routes.map(({ link, component, authed }: IRouteType, i) => {
                 if (authed && !isAuthed)

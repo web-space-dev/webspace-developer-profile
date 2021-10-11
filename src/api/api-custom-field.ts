@@ -1,4 +1,3 @@
-import { config } from "../config/config";
 import { IItem } from "../types";
 
 const base = "https://api.plutio.com/v1.8/";
