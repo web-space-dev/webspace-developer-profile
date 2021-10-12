@@ -26,7 +26,11 @@ const devs = {
   dylan: "Mfp8xnAtLN4yGT5ru",
 };
 
-const taskGroupIds = {
+type ITaskGroupIDs = {
+  [key: string]: string;
+};
+
+const taskGroupIds: ITaskGroupIDs = {
   inReview: "bgtwBnGZeWatyyZuS",
   done: "ZkTfpcsywJ6Fem2kZ",
 };
@@ -34,11 +38,17 @@ const taskGroupIds = {
 type IPrices = {
   [key: string]: number;
 };
+
+interface IProps {
+  [key: string]: string;
+  person: string;
+  status: string;
+}
 /**
  * Tasks Component
  *
  */
-const Tasks = () => {
+const Tasks = ({ person, status }: IProps) => {
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [customFields, setCustomFields] = useState<ICustomField[]>([]);
 
@@ -57,7 +67,7 @@ const Tasks = () => {
   const load = useCallback(() => {
     const token = auth.accessTokenExists();
     if (token) {
-      listTasks(token.accessToken, taskGroupIds["done"])
+      listTasks(token.accessToken, taskGroupIds[status])
         .then((res) => {
           setLoading(false);
           if (res.code) {
@@ -66,8 +76,7 @@ const Tasks = () => {
             setTasks(
               res.filter((task: ITask) => {
                 return (
-                  task.customFields.length > 0 &&
-                  task.assignedTo[0] === devs["dylan"]
+                  task.customFields.length > 0 && task.assignedTo[0] === person
                 );
               })
             );
@@ -137,7 +146,7 @@ const Tasks = () => {
   if (error !== "") return <EmptyState message={error} action={load} />;
   return (
     <React.Fragment>
-      <Typography variant="h2">Total: {total} </Typography>
+      <Typography variant="h4">Total: {total} </Typography>
       <GridList>
         {tasks.length > 0 ? (
           tasks

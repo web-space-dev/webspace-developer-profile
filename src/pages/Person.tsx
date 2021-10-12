@@ -8,6 +8,7 @@ import EmptyState from "../components/global/EmptyState";
 import { show } from "../api/api-people";
 import auth from "../helpers/auth-helper";
 import { IPerson } from "../types";
+import Tasks from "./Tasks";
 
 /**
  * Component types
@@ -67,7 +68,11 @@ const Person = ({ match }: IProps) => {
       <Typography variant="subtitle1">
         {person.contactEmails[0].address}
       </Typography>
-      <Grid container spacing={2}></Grid>
+      <Typography variant="h3">Tasks in Review</Typography>
+      <Tasks person={person._id} status={"inReview"} />
+      <Typography variant="h3">Tasks Completed</Typography>
+      <Tasks person={person._id} status={"done"} />
+      {/* <Grid container spacing={2}></Grid> */}
     </React.Fragment>
   );
 };
