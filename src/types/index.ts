@@ -53,6 +53,23 @@ export interface ICustomField {
   _id: string;
 }
 
+export interface ITaskGroup {
+  _id: string;
+  title: string;
+  taskBoardId: string;
+  projectId: string;
+  isTemplate: boolean;
+  tasks: string[];
+  coverImage: CoverImage;
+  createdAt: Date;
+  createdBy: string;
+  businessId: string;
+  color: string;
+  updatedAt: Date;
+}
+
+export interface CoverImage {}
+
 /**
  * Used to extend types of components where the history object is used
  */
@@ -129,4 +146,60 @@ export interface Locale {
 export interface Name {
   first: string;
   last: string;
+}
+
+export interface IProject {
+  _id: string;
+  currency: string;
+  createdAt: Date;
+  createdBy: string;
+  businessId: string;
+  color: string;
+  templateId: string;
+  nameSortKey: string;
+  descriptionHTML: string;
+  descriptionPlain: string;
+  hasDescription: boolean;
+  coverImage: CoverImage;
+  updatedAt: Date;
+  contributors: string[];
+  isBillable: boolean;
+  customFields: any[];
+  name: string;
+  clients: Client[];
+  status: Status;
+  taskBoards: string[];
+  index: number;
+  shareSettings: ShareSettings;
+  isTemplate: boolean;
+  startDate: Date;
+  dueDate: Date;
+  taskCounts: { [key: string]: TaskCount };
+}
+
+export interface Client {
+  _id: string;
+  entityType: string;
+}
+
+export interface CoverImage {}
+
+export interface ShareSettings {
+  isShared: boolean;
+  sharedBoards: any[];
+  fields: any[];
+}
+
+export interface Status {
+  _id: string;
+  title: string;
+  color: string;
+  type: string;
+  textColor: string;
+}
+
+export interface TaskCount {
+  all: number;
+  overdue: number;
+  completed: number;
 }

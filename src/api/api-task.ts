@@ -4,23 +4,67 @@ import { IItem } from "../types";
 const base = "https://api.plutio.com/v1.8/";
 const prefix = base + "tasks?taskGroupId=";
 // https://api.plutio.com/v1.8/tasks?taskGroupId=ZkTfpcsywJ6Fem2kZ
+//{"$or":[{"title": "Review"}, {"title": "Done"}]}
+// const mongoDbQuery = (strings: string[]) =>
+//   `{"$or":[${strings.map((string) => `{"title": ${string}}`)}]}`;
 
 /**
  * Fetch a list of Items
  *
  */
-export const list = async (token: string, taskGroupId: string) => {
+export const getTaskGroupId = async (
+  token: string,
+  project: string,
+  status: string
+) => {
   try {
-    const response = await fetch(prefix + taskGroupId, {
-      method: "GET",
-      //@ts-ignore
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        Business: process.env.REACT_APP_PLUTIO_BUSINESS_DOMAIN,
-      },
-    });
+    // const query =
+    // eslint-disable-next-line no-useless-escape
+    // '{"$or":[{"title": "Review"}, {"title": "Done"}]}';
+    const response = await fetch(
+      `${base}task-groups?projectId=${project}&title=${status}`,
+      {
+        method: "GET",
+        //@ts-ignore
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          Authorization: `Bearer ${token}`,
+          Business: process.env.REACT_APP_PLUTIO_BUSINESS_DOMAIN,
+        },
+      }
+    );
+    return response.json();
+  } catch (err) {
+    return console.log(err);
+  }
+};
+
+/**
+ * Fetch a list of Items
+ *
+ */
+export const list = async (
+  token: string,
+  taskGroupId: string,
+  person: string
+) => {
+  try {
+    const response = await fetch(
+      `${base}tasks?taskGroupId=${taskGroupId}&assignedTo=${person}`,
+      {
+        method: "GET",
+        //@ts-ignore
+        headers: {
+          Accept: "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          Business: process.env.REACT_APP_PLUTIO_BUSINESS_DOMAIN,
+        },
+      }
+    );
     return response.json();
   } catch (err) {
     return console.log(err);

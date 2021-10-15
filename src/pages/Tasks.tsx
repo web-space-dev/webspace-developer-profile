@@ -3,6 +3,7 @@ import {
   Card,
   CardActions,
   CardContent,
+  CardHeader,
   Grid,
   GridList,
   GridListTile,
@@ -11,10 +12,10 @@ import {
 } from "@material-ui/core";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { ICustomField, ITask } from "../types";
+import { ICustomField, ITask, ITaskGroup } from "../types";
 import Loading from "../components/global/Loading";
 import EmptyState from "../components/global/EmptyState";
-import { list as listTasks } from "../api/api-task";
+import { getTaskGroupId, list as listTasks } from "../api/api-task";
 import auth from "../helpers/auth-helper";
 import { Replay } from "@material-ui/icons";
 import { list as listCustomFields } from "../api/api-custom-field";
@@ -35,6 +36,11 @@ const taskGroupIds: ITaskGroupIDs = {
   done: "ZkTfpcsywJ6Fem2kZ",
 };
 
+const statusArr = [
+  "Review",
+  //, "Done"
+];
+
 type IPrices = {
   [key: string]: number;
 };
@@ -42,50 +48,76 @@ type IPrices = {
 interface IProps {
   [key: string]: string;
   person: string;
-  status: string;
+  project: string;
 }
+
+const prices: IPrices = {
+  Weeny: 20,
+  Low: 40,
+  Medium: 65,
+  High: 80,
+};
+
 /**
  * Tasks Component
  *
  */
-const Tasks = ({ person, status }: IProps) => {
+const Tasks = ({ person, project }: IProps) => {
+  // const [taskGroupIds, setTaskGroupIds] = useState<string[]>([]);
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [customFields, setCustomFields] = useState<ICustomField[]>([]);
-
-  const prices: IPrices = {
-    Weeny: 20,
-    Low: 40,
-    Medium: 65,
-    High: 80,
-  };
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [total, setTotal] = useState(0);
 
-  const load = useCallback(() => {
+  const getFieldName = useCallback(
+    (id: string): string => {
+      if (customFields.length > 0) {
+        const index = customFields.findIndex((field) => field._id === id);
+        if (index === -1) return "";
+
+        return customFields[index].name;
+      }
+
+      return "";
+    },
+    [customFields]
+  );
+
+  const load = useCallback(async () => {
     const token = auth.accessTokenExists();
     if (token) {
-      listTasks(token.accessToken, taskGroupIds[status])
-        .then((res) => {
-          setLoading(false);
-          if (res.code) {
-            setError(res.message || "Could not contact server");
-          } else {
-            setTasks(
-              res.filter((task: ITask) => {
-                return (
-                  task.customFields.length > 0 && task.assignedTo[0] === person
-                );
-              })
-            );
+      setLoading(true); // try {
+      statusArr.forEach(async (status) => {
+        try {
+          const data: ITaskGroup[] = await getTaskGroupId(
+            token.accessToken,
+            project,
+            status
+          );
+
+          if (!data) {
+            throw new Error("Could not load task groups");
           }
-        })
-        .catch((err) => {
+          const tasks = await listTasks(token.accessToken, data[0]._id, person);
+          console.log(tasks);
+          // setTaskGroupIds((old) => [...old, data[0]._id]);
+          if (!tasks) throw new Error("Could not load tasks");
+          setTasks(tasks);
+          setError("");
           setLoading(false);
-          setError(typeof err === "string" ? err : "Could not load tasks");
-        });
+        } catch (err) {
+          console.log("Check me for object type!");
+          console.log(err);
+          // console.log(err);
+          // console.log(typeof err.toString());
+          // const errStr = typeof err === "string" ? err : err.message as string;
+          setError(typeof err === "string" ? err : "Could not contact server");
+          setLoading(false);
+        }
+      });
 
       listCustomFields(token.accessToken, customFieldId)
         .then((res) => {
@@ -108,13 +140,10 @@ const Tasks = ({ person, status }: IProps) => {
                     total += prices[name];
                   }
                 );
-
-                // const prices = names.map(name =>)
-                // const tier = getFieldName(task.customFields[customFieldI].value[0]);
               }
             });
-
-            setTotal(total);
+            // getTotalPrice();
+            setTotal((o) => total);
           }
         })
         .catch((err) => {
@@ -122,70 +151,70 @@ const Tasks = ({ person, status }: IProps) => {
           // setError(typeof err === "string" ? err : "Could not load tasks");
         });
     }
-  }, []);
+  }, [getFieldName, person, project, tasks]);
+
+  // const getTotalPrice = () =>{
+  //   let newTotal = 0;
+  //   tasks.forEach((task) => {
+  //     const customFieldI = task.customFields.findIndex(
+  //       (field) => field._id === customFieldId
+  //     );
+  //     if (customFieldI !== -1) {
+  //       //const names =
+  //       task.customFields[customFieldI].value.forEach(
+  //         (value: string) => {
+  //           const name = getFieldName(value);
+  //           // console.log("yeehaw");
+  //           newTotal += prices[name];
+  //         }
+  //       );
+  //     }
+  //   });
+
+  //   setTotal(_o => newTotal)
+  // }
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const getFieldName = (id: string): string => {
-    if (customFields.length > 0) {
-      const index = customFields.findIndex((field) => field._id === id);
-      if (index === -1) return "";
-
-      return customFields[index].name;
-    }
-
-    return "";
-  };
-
   /**
    * Render JSX
    */
   if (loading) return <Loading />;
-  if (error !== "") return <EmptyState message={error} action={load} />;
+  if (error !== "")
+    return (
+      <>
+        <Typography variant="h3">Project ID: {project} </Typography>
+        <Typography variant="h3">Person ID: {person} </Typography>
+
+        <EmptyState message={error} action={load} />
+      </>
+    );
   return (
     <React.Fragment>
       <Typography variant="h4">Total: {total} </Typography>
-      <GridList>
+      <Grid container>
         {tasks.length > 0 ? (
-          tasks
-            // .filter((task) => task.customFields.length > 0)
-            .map((task, i) => {
-              const tier = getFieldName(task.customFields[0].value[0]);
+          tasks.map((task, i) => {
+            let tier = "";
+            if (task.customFields.length > 0) {
+              tier = getFieldName(task.customFields[0].value[0]);
+            }
 
-              return (
-                <GridListTile
-                  // task
-                  // cellHeight={400}
-                  // sm={6}
-                  // xs={12}
-                  key={task._id}
-                  // style={{ width: 408 }}
+            return (
+              <Grid item xs={6} key={task._id}>
+                <Zoom
+                  in={true}
+                  style={{ transitionDelay: `${(i + 1) * 200}ms` }}
                 >
-                  <Zoom
-                    in={true}
-                    style={{ transitionDelay: `${(i + 1) * 200}ms` }}
-                  >
-                    <Card>
-                      <CardContent>
-                        <Typography gutterBottom variant="h3" component="h3">
-                          {task.title} - {tier}
-                          {/* {customFields.length > 0
-                          ? customFields[
-                              customFields.findIndex(
-                                (field) =>
-                                  field._id === task.customFields[0]._id
-                              )
-                            ].name
-                          : ""} */}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Zoom>
-                </GridListTile>
-              );
-            })
+                  <Card>
+                    <CardHeader title={task.title} subheader={tier} />
+                  </Card>
+                </Zoom>
+              </Grid>
+            );
+          })
         ) : (
           <Grid item sm={12} xs={12}>
             <Card>
@@ -207,7 +236,7 @@ const Tasks = ({ person, status }: IProps) => {
             </Card>
           </Grid>
         )}
-      </GridList>
+      </Grid>
     </React.Fragment>
   );
 };
